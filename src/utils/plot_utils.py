@@ -46,7 +46,7 @@ def plot_soil_profiles(df, out_dir, ignore_cols =[],  attribute=""):
 
 def plot_som_hist(df, out_dir,  attribute="", threshold_value = np.PINF):
     """Creates histogram plot(s)."""
-
+    
     '''
     ax = df_clean['som'][df_clean['som'] < 6].plot.hist(bins=100, alpha=0.5)
     plt.savefig('soil_profiles_plot_1.png', dpi=500)
@@ -68,8 +68,8 @@ def plot_som_hist(df, out_dir,  attribute="", threshold_value = np.PINF):
 
             plt.savefig(out_fig, dpi=350)
             plt.close('all')
-
-
+            
+            
 def plot_map(geojson_fn, out_dir):
 
     import geopandas as gpd
@@ -77,16 +77,14 @@ def plot_map(geojson_fn, out_dir):
     import geoplot.crs as gcrs
     import mapclassify as mc
 
-    continental_usa_cities = gpd.read_file(gplt.datasets.get_path('usa_cities'))
-    continental_usa_cities = continental_usa_cities.query('STATE not in ["AK", "HI", "PR"]')
     contiguous_usa = gpd.read_file(gplt.datasets.get_path('contiguous_usa'))
     gdf = gpd.read_file(geojson_fn)
     scheme = mc.Quantiles(gdf['som'], k=5)
-
+    
     # plt.figure(figsize=(20, 10))
     plt.clf
     out_fig = os.path.join(out_dir, 'inspect_data/map_plot.png')
-
+    
     ax = gplt.webmap(contiguous_usa, projection=gcrs.WebMercator())
     # gplt.pointplot(gdf, ax=ax)
     gplt.pointplot(
@@ -98,3 +96,31 @@ def plot_map(geojson_fn, out_dir):
 
     plt.savefig(out_fig, dpi=350)
     plt.close('all')
+
+
+def plot_stenon_polaris(df, 
+                        field_name, 
+                        y_name = 'som_stenon', 
+                        features_names = ['som_polaris_mean_0_5', 'som_polaris_mode_0_5', 'som_polaris_p5_0_5', 'som_polaris_p50_0_5', 'som_polaris_p95_0_5', 
+                                          'som_polaris_mean_5_15', 'som_polaris_mode_5_15', 'som_polaris_p5_5_15', 'som_polaris_p50_5_15', 'som_polaris_p95_5_15', 
+                                          'som_polaris_mean_15_30', 'som_polaris_mode_15_30', 'som_polaris_p5_15_30', 'som_polaris_p50_15_30', 'som_polaris_p95_15_30'], 
+                        x_lim_max=None,
+                        y_lim_max=None
+                        ):
+
+    g = sns.FacetGrid(pd.DataFrame(features_names), col=0, col_wrap=5, sharex=False)
+    for ax, x_var in zip(g.axes, features_names):
+        sns.scatterplot(data=df, x=x_var, y=y_name, ax=ax)
+    g.tight_layout()
+
+    g.tight_layout()
+    if x_lim_max is not None:
+        g.set(xlim=(-0.15, x_lim_max))
+    if y_lim_max is not None:
+        g.set(ylim=(-0.15, y_lim_max))
+
+    #move overall title up
+    g.fig.subplots_adjust(top=0.9)
+    g.fig.suptitle('SOM (Stenon vs Polaris_median, {})'.format(field_name), fontsize=20)
+
+    plt.savefig('./Compare_with_POLARIS_SOM_{}.png'.format(field_name))

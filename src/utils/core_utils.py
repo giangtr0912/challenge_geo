@@ -5,7 +5,7 @@ import os
 import sys
 import time
 import warnings
-from pathlib import Path
+
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ def _inputfile_exists(f):
 
     def wrapper(*args, **kwargs):
         filename = args[0]
-        if not Path(filename).exists():
+        if filename == "":
             logger.warning("Input file does not exist. [{}]".format(filename))
         return f(*args, **kwargs)
 
